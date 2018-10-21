@@ -6,14 +6,16 @@
 #define PATHTRACER_SPHERE_H
 #include <iostream>
 #include "hitable.h"
+#include <memory>
 
 class sphere: public hitable{
 public:
     sphere() = default;
-    sphere(Vec3 cen, float r):center(cen),radius(r){};
+    sphere(Vec3 cen, float r, std::shared_ptr<material> m):center(cen),radius(r), mat(m){};
     bool hit(const ray &r, float t_min, float t_max, hit_record &rec) const override;
     Vec3 center;
     float radius;
+    std::shared_ptr<material> mat;
 };
 
 
@@ -33,6 +35,7 @@ bool sphere::hit(const ray &r, float t_min, float t_max, hit_record &rec) const 
             rec.t = intersection;
             rec.p = r.pointAtParam(intersection);
             rec.normal = normalized((rec.p-center)/radius);
+            rec.mat_ptr = mat;
             return true;
         }
 
@@ -41,6 +44,7 @@ bool sphere::hit(const ray &r, float t_min, float t_max, hit_record &rec) const 
             rec.t = intersection;
             rec.p = r.pointAtParam(intersection);
             rec.normal = normalized((rec.p-center)/radius);
+            rec.mat_ptr = mat;
             return true;
         }
 

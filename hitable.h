@@ -5,6 +5,7 @@
 #ifndef PATHTRACER_HITABLE_H
 #define PATHTRACER_HITABLE_H
 #include "ray.h"
+#include <memory>
 
 class material;
 
@@ -12,7 +13,7 @@ struct hit_record{
     float t{}; //z coordinate of hit
     Vec3 p; //exact point of hit
     Vec3 normal;
-    material *mat_ptr;
+    std::shared_ptr<material> mat_ptr;
 };
 
 class hitable{

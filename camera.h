@@ -15,7 +15,7 @@ public:
     Vec3 horizontal = Vec3(4,0,0);
     Vec3 vertical = Vec3(0,-2,0);
 
-    ray get_ray(float u, float v){return ray(origin, top_left_corner + u * horizontal + v * vertical);};
+    ray get_ray(float u, float v){return {origin, top_left_corner + u * horizontal + v * vertical};};
 
 };
 

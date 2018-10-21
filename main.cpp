@@ -7,41 +7,40 @@
 #include "hitable_list.h"
 #include "sphere.h"
 #include "camera.h"
+#include "math_helper.h"
+#include "material.h"
 
 static const std::string FILENAME = "render.ppm";
 
-static const int SAMPLES_PER_PIXEL = 1;
+static const int SAMPLES_PER_PIXEL = 50;
+static const int MAX_DEPTH = 100;
 
 static const int WIDTH = 800;
 static const int HEIGHT = 400;
 static const Vec3 bg_color(0.5f, 0.7f, 1.f);
+static const float SHADOW_BIAS = 0.0001f;
 
-/**
- * Normalizes value in given min/max range
- * https://stats.stackexchange.com/questions/70801/how-to-normalize-data-to-0-1-range
- */
-float normalize(float in,float min, float max){
-    return (in-min)/(max-min);
-}
-// http://mathworld.wolfram.com/SpherePointPicking.html
-Vec3 random_point_on_unit_sphere(){
-    auto phi = static_cast<float>(drand48() * 2 * M_PI);
-    auto u = static_cast<float>(drand48() * 2 - 1);
-    float t = sqrtf(1-u*u);
-    return {t*cosf(phi),t*sinf(phi),u};
-}
+
 
 /*
  * right hand coordinate system (+z is out of monitor): camera is at (0,0,0) and looks to a screen centered at (0,0,-1)
  * Screen has edges at (w/h ratio) top left:(-2,1,-1), top right: (2,1,-1) and symmetric down.
  */
-Vec3 color(const ray& r,std::shared_ptr<hitable_list> world){
+Vec3 color(const ray& r, const std::shared_ptr<hitable_list> &world, int depth){
     //sphere
     hit_record rec;
-    if(world->hit(r,0.0001f,MAXFLOAT,rec)) {
-        Vec3 target = rec.p + rec.normal + random_point_on_unit_sphere();
-        return 0.5 * color(ray(rec.p,target-rec.p),world);
-        //return 0.5 * Vec3(rec.normal.x + 1, rec.normal.y + 1, rec.normal.z + 1);
+    if(world->hit(r,SHADOW_BIAS,MAXFLOAT,rec)) {
+        ray scattered;
+        Vec3 attenuation;
+        //rec.mat_ptr->
+        if(depth < MAX_DEPTH && rec.mat_ptr->scatter(r,rec,attenuation,scattered)){
+            return attenuation*color(scattered,world,depth+1);
+        }else{
+            return Vec3(0,0,0);
+        }
+
+        //Vec3 target = rec.p + rec.normal + random_point_on_unit_sphere();
+        //return 0.5 * color(ray(rec.p,target-rec.p),world);
     }
 
     //background
@@ -51,22 +50,20 @@ Vec3 color(const ray& r,std::shared_ptr<hitable_list> world){
     return (1-t)*Vec3(1.f,1.f,1.f)+(t)*bg_color; //lerp of default color
 }
 
-void render(camera cam, std::ofstream &file,std::shared_ptr<hitable_list> world){
+void render(camera cam, std::ofstream &file, const std::shared_ptr<hitable_list> &world){
 
     srand(static_cast<unsigned int>(time(nullptr)));
 
     int buffer_index = 0;
 
     for (int j = 0; j < HEIGHT; ++j) {
-
         for (int i = 0; i < WIDTH; ++i) {
-
             Vec3 col(0,0,0);
             for (int k = 0; k < SAMPLES_PER_PIXEL; ++k) {
                 float u = (float) (i+drand48()) / (float) WIDTH;
                 float v = (float) (j+drand48()) / (float) HEIGHT;
                 ray r = cam.get_ray(u,v);
-                col += color(r,world);
+                col += color(r,world,0);
             }
 
             col /= SAMPLES_PER_PIXEL;
@@ -94,15 +91,19 @@ int main() {
     //PPM Header: P3 is the magic number for ppm in ASCII format, followed by width and height, followed by 255, the max
     file << "P3\n" << WIDTH << " " << HEIGHT << "\n255\n";
 
+    auto mat_lamb = std::make_shared<lambertian>(lambertian(Vec3(0.1f,0.3f,0.3f)));
+
     std::vector<std::shared_ptr<hitable>> elements;
-    elements.push_back(std::make_shared<sphere>(sphere(Vec3(0,0,-1),0.5f)));
-    elements.push_back(std::make_shared<sphere>(sphere(Vec3(0,-100.5f,-1),100)));
+    elements.push_back(std::make_shared<sphere>(sphere(Vec3(0,0,-1),0.5f,mat_lamb)));
+    elements.push_back(std::make_shared<sphere>(sphere(Vec3(0,-100.5f,-1),100,mat_lamb)));
     std::shared_ptr<hitable_list> world = std::make_shared<hitable_list>(elements);
 
 
     camera cam;
 
     render(cam,file,world);
+
+
     file.close();
     return 0;
 }

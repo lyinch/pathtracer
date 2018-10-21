@@ -2,6 +2,8 @@
 #include <fstream>
 #include <vector>
 #include <memory>
+#include <chrono>
+
 
 #include "hitable.h"
 #include "hitable_list.h"
@@ -12,8 +14,8 @@
 
 static const std::string FILENAME = "render.ppm";
 
-static const int SAMPLES_PER_PIXEL = 100;
-static const int MAX_DEPTH = 200;
+static const int SAMPLES_PER_PIXEL = 50;
+static const int MAX_DEPTH = 100;
 
 static const int WIDTH = 800;
 static const int HEIGHT = 400;
@@ -32,7 +34,7 @@ Vec3 color(const ray& r, const std::shared_ptr<hitable_list> &world, int depth){
     if(world->hit(r,SHADOW_BIAS,MAXFLOAT,rec)) {
         ray scattered;
         Vec3 attenuation;
-        //rec.mat_ptr->
+
         if(depth < MAX_DEPTH && rec.mat_ptr->scatter(r,rec,attenuation,scattered)){
             return attenuation*color(scattered,world,depth+1);
         }else{
@@ -79,7 +81,8 @@ void render(camera cam, std::ofstream &file, const std::shared_ptr<hitable_list>
             buffer_index += 3;
             file << ir << " " << ig << " " << ib << "\n";
         }
-        std::cout << "\r[Info]:\tProgress: " << (((float)j)/((float)HEIGHT))*100 << "%";
+        std::cout << "\r[INFO]:\tProgress: " << (((float)j)/((float)HEIGHT))*100 << "%";
+        fflush(stdout);
     }
     std::cout << std::endl;//flush and add newline
 }
@@ -93,8 +96,8 @@ int main() {
 
     auto mat_lamb1 = std::make_shared<lambertian>(lambertian(Vec3(0.1f,0.3f,0.3f)));
     auto mat_lamb2 = std::make_shared<lambertian>(lambertian(Vec3(0.9f,0.3f,0.3f)));
-    auto mat_metal1 = std::make_shared<metal>(metal(Vec3(0.8f,0.8f,0.8f),2));
-    auto mat_metal2 = std::make_shared<metal>(metal(Vec3(0.1f,0.3f,0.5f),10));
+    auto mat_metal1 = std::make_shared<metal>(metal(Vec3(0.8f,0.8f,0.8f),1));
+    auto mat_metal2 = std::make_shared<metal>(metal(Vec3(0.1f,0.3f,0.5f),0.2));
 
     std::vector<std::shared_ptr<hitable>> elements;
     elements.push_back(std::make_shared<sphere>(sphere(Vec3(0,0,-1),0.5f,mat_lamb1)));
@@ -108,8 +111,10 @@ int main() {
 
     std::cout << "[INFO]:\tInitialization successful, start rendering" << std::endl;
 
+    std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
     render(cam,file,world);
-
+    std::chrono::high_resolution_clock::time_point t2 = std::chrono::high_resolution_clock::now();
+    std::cout << "[INFO]:\tRendering finished in " <<  std::chrono::duration_cast<std::chrono::seconds>( t2 - t1 ).count() << "s" << std::endl;
 
     file.close();
     return 0;

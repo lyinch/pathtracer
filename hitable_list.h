@@ -1,3 +1,5 @@
+#include <utility>
+
 //
 // Created by Thierry Backes on 20/10/18.
 //
@@ -13,7 +15,7 @@
 class hitable_list: public hitable{
 public:
     hitable_list() = default;
-    explicit hitable_list(std::vector<std::shared_ptr<hitable>> elements):elements(elements){};
+    explicit hitable_list(std::vector<std::shared_ptr<hitable>> elements):elements(std::move(elements)){};
     std::vector<std::shared_ptr<hitable>> elements;
 
     bool hit(const ray &r, float t_min, float t_max, hit_record &rec) const;

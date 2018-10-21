@@ -91,11 +91,15 @@ int main() {
     //PPM Header: P3 is the magic number for ppm in ASCII format, followed by width and height, followed by 255, the max
     file << "P3\n" << WIDTH << " " << HEIGHT << "\n255\n";
 
-    auto mat_lamb = std::make_shared<lambertian>(lambertian(Vec3(0.1f,0.3f,0.3f)));
+    auto mat_lamb1 = std::make_shared<lambertian>(lambertian(Vec3(0.1f,0.3f,0.3f)));
+    auto mat_lamb2 = std::make_shared<lambertian>(lambertian(Vec3(0.9f,0.3f,0.3f)));
+    auto mat_metal1 = std::make_shared<metal>(metal(Vec3(0.8f,0.8f,0.8f)));
 
     std::vector<std::shared_ptr<hitable>> elements;
-    elements.push_back(std::make_shared<sphere>(sphere(Vec3(0,0,-1),0.5f,mat_lamb)));
-    elements.push_back(std::make_shared<sphere>(sphere(Vec3(0,-100.5f,-1),100,mat_lamb)));
+    elements.push_back(std::make_shared<sphere>(sphere(Vec3(0,0,-1),0.5f,mat_lamb1)));
+    elements.push_back(std::make_shared<sphere>(sphere(Vec3(-1,0,-1),0.5f,mat_lamb1)));
+    elements.push_back(std::make_shared<sphere>(sphere(Vec3(1,0,-1),0.5f,mat_metal1)));
+    elements.push_back(std::make_shared<sphere>(sphere(Vec3(0,-100.5f,-1),100,mat_lamb2)));
     std::shared_ptr<hitable_list> world = std::make_shared<hitable_list>(elements);
 
 

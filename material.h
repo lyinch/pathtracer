@@ -34,14 +34,15 @@ Vec3 reflect(const Vec3 &v, const Vec3 &n){
 
 class metal: public material{
 public:
-    metal(const Vec3& a): albedo(a){};
+    metal(const Vec3& a, float f): albedo(a){fuzz = f < 1 ? f : 1;};
 
     virtual bool scatter(const ray& r_in, const hit_record& rec, Vec3& attenuation, ray& scattered) const{
         Vec3 reflected = reflect(r_in.getDirection(),rec.normal);
-        scattered = ray(rec.p,reflected);
+        scattered = ray(rec.p,reflected + fuzz*random_point_on_unit_sphere());
         attenuation = albedo;
         return(dot(scattered.getDirection(),rec.normal) > 0);
     }
+    float fuzz;
     Vec3 albedo;
 };
 

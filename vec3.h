@@ -23,8 +23,6 @@ public:
 
 };
 
-
-
 /** Function Implementations **/
 inline void Vec3::normalize(){
     float k = squared_length();
@@ -91,9 +89,7 @@ std::ostream &operator<< (std::ostream &os, Vec3 const &v) {
 }
 
 inline Vec3 sqrtvec(Vec3 v){
-    return Vec3(sqrtf(v.x),sqrtf(v.y),sqrtf(v.z));
+    return {sqrtf(v.x),sqrtf(v.y),sqrtf(v.z)};
 }
-
-
 
 #endif //PATHTRACER_VEC3_H

@@ -6,13 +6,15 @@
 #define PATHTRACER_HITABLE_LIST_H
 #include <cstdio>
 #include <iostream>
+#include <vector>
+
 #include "hitable.h"
+
 class hitable_list: public hitable{
 public:
     hitable_list() = default;
-    hitable_list(hitable **l, int n):list_size(n),list(l){};
-    int list_size;
-    hitable **list;
+    explicit hitable_list(std::vector<std::shared_ptr<hitable>> elements):elements(elements){};
+    std::vector<std::shared_ptr<hitable>> elements;
 
     bool hit(const ray &r, float t_min, float t_max, hit_record &rec) const;
 };
@@ -23,9 +25,8 @@ bool hitable_list::hit(const ray &r, float t_min, float t_max, hit_record &rec) 
     bool hit_anything = false;
     double closest_so_far = t_max;
 
-    for(int i = 0; i < list_size; ++i){
-        if(list[i]->hit(r,t_min,closest_so_far,tmp_rec)){
-
+    for(auto &elem: elements){
+        if(elem->hit(r,t_min,closest_so_far,tmp_rec)){
             hit_anything = true;
             closest_so_far = tmp_rec.t;
             rec = tmp_rec;

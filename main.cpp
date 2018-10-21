@@ -1,5 +1,7 @@
 #include <iostream>
 #include <fstream>
+#include <vector>
+#include <memory>
 
 #include "hitable.h"
 #include "hitable_list.h"
@@ -8,7 +10,7 @@
 
 static const std::string FILENAME = "render.ppm";
 
-static const int SAMPLES_PER_PIXEL = 10;
+static const int SAMPLES_PER_PIXEL = 1;
 
 static const int WIDTH = 800;
 static const int HEIGHT = 400;
@@ -33,7 +35,7 @@ Vec3 random_point_on_unit_sphere(){
  * right hand coordinate system (+z is out of monitor): camera is at (0,0,0) and looks to a screen centered at (0,0,-1)
  * Screen has edges at (w/h ratio) top left:(-2,1,-1), top right: (2,1,-1) and symmetric down.
  */
-Vec3 color(const ray& r, hitable *world){
+Vec3 color(const ray& r,std::shared_ptr<hitable_list> world){
     //sphere
     hit_record rec;
     if(world->hit(r,0.0001f,MAXFLOAT,rec)) {
@@ -49,7 +51,7 @@ Vec3 color(const ray& r, hitable *world){
     return (1-t)*Vec3(1.f,1.f,1.f)+(t)*bg_color; //lerp of default color
 }
 
-void render(camera cam, std::ofstream &file, hitable *world){
+void render(camera cam, std::ofstream &file,std::shared_ptr<hitable_list> world){
 
     srand(static_cast<unsigned int>(time(nullptr)));
 
@@ -61,7 +63,6 @@ void render(camera cam, std::ofstream &file, hitable *world){
 
             Vec3 col(0,0,0);
             for (int k = 0; k < SAMPLES_PER_PIXEL; ++k) {
-                //ToDo: compensate for FOV distortion!!
                 float u = (float) (i+drand48()) / (float) WIDTH;
                 float v = (float) (j+drand48()) / (float) HEIGHT;
                 ray r = cam.get_ray(u,v);
@@ -89,22 +90,19 @@ void render(camera cam, std::ofstream &file, hitable *world){
 
 int main() {
     std::ofstream file(FILENAME);
+
     //PPM Header: P3 is the magic number for ppm in ASCII format, followed by width and height, followed by 255, the max
     file << "P3\n" << WIDTH << " " << HEIGHT << "\n255\n";
 
-    hitable *list[2];
-    list[0] = new sphere(Vec3(0,0,-1),0.5f);
-    list[1] = new sphere(Vec3(0,-100.5f,-1),100);
-    hitable *world = new hitable_list(list,2);
+    std::vector<std::shared_ptr<hitable>> elements;
+    elements.push_back(std::make_shared<sphere>(sphere(Vec3(0,0,-1),0.5f)));
+    elements.push_back(std::make_shared<sphere>(sphere(Vec3(0,-100.5f,-1),100)));
+    std::shared_ptr<hitable_list> world = std::make_shared<hitable_list>(elements);
+
 
     camera cam;
 
     render(cam,file,world);
-
-
-    free(list[0]);
-    free(list[1]);
-    free(world);
     file.close();
     return 0;
 }

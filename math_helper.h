@@ -26,5 +26,15 @@ Vec3 random_point_on_unit_sphere(){
     return {t*cosf(phi),t*sinf(phi),u};
 }
 
+/**
+ * Returns a random point from the unit disk
+ * http://mathworld.wolfram.com/DiskPointPicking.html
+ */
+Vec3 random_point_on_unit_disk(){
+    auto theta = static_cast<float>(drand48() * 2 * M_PI);
+    auto r = static_cast<float>(drand48());
+    return {sqrtf(r)*cosf(theta),sqrtf(r)*sinf(theta),0};
+}
+
 
 #endif //PATHTRACER_MATH_HELPER_H

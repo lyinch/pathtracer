@@ -14,7 +14,7 @@
 
 static const std::string FILENAME = "render.ppm";
 
-static const int SAMPLES_PER_PIXEL = 50;
+static const int SAMPLES_PER_PIXEL = 10;
 static const int MAX_DEPTH = 100;
 
 static const int WIDTH = 800;
@@ -108,7 +108,7 @@ int main() {
     std::shared_ptr<hitable_list> world = std::make_shared<hitable_list>(elements);
 
 
-    camera cam;
+    camera cam(90,float(WIDTH)/float(HEIGHT));
 
     std::cout << "[INFO]:\tInitialization successful, start rendering" << std::endl;
 

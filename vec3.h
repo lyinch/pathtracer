@@ -64,6 +64,9 @@ inline float dot(const Vec3 &v1, const Vec3 &v2){
     return v1.x*v2.x+v1.y*v2.y+v1.z*v2.z;
 }
 
+inline Vec3 operator-(const Vec3& in)  {
+    return {-in.x,-in.y,-in.z};
+}
 
 Vec3 &Vec3::operator+=(const Vec3 &v) {
     this->x += v.x;

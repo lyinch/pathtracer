@@ -1,4 +1,6 @@
 Implementation of a CPU pathtracer. Resources used for this code:
-- "Ray Tracing in One Weekend" by Peter Shirley
-- https://www.scratchapixel.com/
 - "Physically Based Rendering: From Theory to Implementation v3" by Matt Phar, Wenzel Jakob, Greg Humphreys
+- "An introduction to Ray Tracing" by Andrew Glassner
+- "Ray Tracing in One Weekend" by Peter Shirley
+- "Ray Tracing the Next Week" by Peter Shirley
+- https://www.scratchapixel.com/

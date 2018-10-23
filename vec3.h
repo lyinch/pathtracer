@@ -89,6 +89,10 @@ inline Vec3 normalized(Vec3 v){
     return v/v.length();
 }
 
+inline Vec3 cross(Vec3 u, Vec3 v){
+    return Vec3(u.y*v.z-u.z*v.y,u.z*v.x-u.x*v.z,u.x*v.y-u.y*v.x);
+}
+
 std::ostream &operator<< (std::ostream &os, Vec3 const &v) {
     os << "(" << v.x << "," << v.y << "," << v.z << ")";
     return os;

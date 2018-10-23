@@ -98,11 +98,12 @@ int main() {
     auto mat_lamb2 = std::make_shared<lambertian>(lambertian(Vec3(0.9f,0.3f,0.3f)));
     auto mat_metal1 = std::make_shared<metal>(metal(Vec3(0.8f,0.8f,0.8f),1));
     auto mat_metal2 = std::make_shared<metal>(metal(Vec3(0.1f,0.3f,0.5f),0.2));
+    auto mat_diele1 = std::make_shared<dielectric>(dielectric(1.5f));
 
     std::vector<std::shared_ptr<hitable>> elements;
-    elements.push_back(std::make_shared<sphere>(sphere(Vec3(0,0,-1),0.5f,mat_lamb1)));
+    elements.push_back(std::make_shared<sphere>(sphere(Vec3(0,0.1f,-1),0.5f,mat_lamb1)));
     elements.push_back(std::make_shared<sphere>(sphere(Vec3(-1,0,-1),0.5f,mat_metal2)));
-    elements.push_back(std::make_shared<sphere>(sphere(Vec3(1,0,-1),0.5f,mat_metal1)));
+    elements.push_back(std::make_shared<sphere>(sphere(Vec3(1,0,-1),0.5f,mat_diele1)));
     elements.push_back(std::make_shared<sphere>(sphere(Vec3(0,-100.5f,-1),100,mat_lamb2)));
     std::shared_ptr<hitable_list> world = std::make_shared<hitable_list>(elements);
 

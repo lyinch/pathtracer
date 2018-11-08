@@ -3,7 +3,7 @@
 #include <vector>
 #include <memory>
 #include <chrono>
-
+#include <limits>
 
 #include "hitable.h"
 #include "hitable_list.h"
@@ -15,7 +15,7 @@
 static const std::string FILENAME = "render.ppm";
 
 static const int SAMPLES_PER_PIXEL = 10;
-static const int MAX_DEPTH = 100;
+static const int MAX_DEPTH = 10;
 
 static const int WIDTH = 800;
 static const int HEIGHT = 400;
@@ -31,7 +31,7 @@ static const float SHADOW_BIAS = 0.0001f;
 Vec3 color(const ray& r, const std::shared_ptr<hitable_list> &world, int depth){
     //sphere
     hit_record rec;
-    if(world->hit(r,SHADOW_BIAS,MAXFLOAT,rec)) {
+    if(world->hit(r,SHADOW_BIAS,std::numeric_limits<float>::max,rec)) {
         ray scattered;
         Vec3 attenuation;
 

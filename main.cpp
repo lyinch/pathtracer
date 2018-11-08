@@ -3,7 +3,7 @@
 #include <vector>
 #include <memory>
 #include <chrono>
-#include <limits>
+#include <cfloat>
 
 #include "hitable.h"
 #include "hitable_list.h"
@@ -31,7 +31,7 @@ static const float SHADOW_BIAS = 0.0001f;
 Vec3 color(const ray& r, const std::shared_ptr<hitable_list> &world, int depth){
     //sphere
     hit_record rec;
-    if(world->hit(r,SHADOW_BIAS,std::numeric_limits<float>::max,rec)) {
+    if(world->hit(r,SHADOW_BIAS,FLT_MAX,rec)) {
         ray scattered;
         Vec3 attenuation;
 

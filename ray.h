@@ -9,8 +9,9 @@
 class ray{
 public:
     ray() = default;
-    ray(const Vec3 ori, const Vec3 dir, float ti = 0.0):origin(ori), time(ti){
+    ray(const Vec3 ori, const Vec3 dir, float ti = 0.0):origin(ori), _time(ti){
         //direction = normalized(dir);
+
         direction = (dir);
     };
 
@@ -23,11 +24,12 @@ public:
     }
 
     Vec3 pointAtParam(float t) const{return origin+t*direction;}
-    float time;
+    float time() const {return _time;}
 
 private:
     Vec3 origin;
     Vec3 direction;
+    float _time;
 };
 
 #endif //PATHTRACER_RAY_H

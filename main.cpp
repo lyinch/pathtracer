@@ -8,14 +8,15 @@
 #include "hitable.h"
 #include "hitable_list.h"
 #include "sphere.h"
+#include "moving_sphere.h"
 #include "camera.h"
 #include "math_helper.h"
 #include "material.h"
 
 static const std::string FILENAME = "render.ppm";
 
-static const int SAMPLES_PER_PIXEL = 10;
-static const int MAX_DEPTH = 10;
+static const int SAMPLES_PER_PIXEL = 200;
+static const int MAX_DEPTH = 20;
 
 static const int WIDTH = 800;
 static const int HEIGHT = 400;
@@ -25,22 +26,19 @@ static const float SHADOW_BIAS = 0.0001f; //offset after a hit to prevent self i
 
 
 /*
- * right hand coordinate system (+z is out of monitor): camera is at (0,0,0) and looks to a screen centered at (0,0,-1)
- * Screen has edges at (w/h ratio) top left:(-2,1,-1), top right: (2,1,-1) and symmetric down.
- */
-
-/*
  * The main part of the rendering algorithms. Takes a ray, calculates the intersection of the ray with the scene
  * and recursively scatters the ray from the objects until a maximal depth. We have not explicit light sampling, and
  * therefore have very slow convergence. If we don't hit anything, we return the background color.
  */
 Vec3 color(const ray& r, const std::shared_ptr<hitable_list> &world, int depth){
     hit_record rec;
+
     if(world->hit(r,SHADOW_BIAS,FLT_MAX,rec)) {
         ray scattered;
         Vec3 attenuation;
 
         if(depth < MAX_DEPTH && rec.mat_ptr->scatter(r,rec,attenuation,scattered)){
+
             return attenuation*color(scattered,world,depth+1);
         }else{
             return {0,0,0};
@@ -111,14 +109,15 @@ int main() {
     auto mat_diele1 = std::make_shared<dielectric>(dielectric(1.5f));
 
     std::vector<std::shared_ptr<hitable>> elements;
-    elements.push_back(std::make_shared<sphere>(sphere(Vec3(-1,0,-1),0.5f,mat_metal2))); //left sphere
-    elements.push_back(std::make_shared<sphere>(sphere(Vec3(0,0.1f,-1),0.5f,mat_lamb1))); //center sphere
+    elements.push_back(std::make_shared<moving_sphere>(moving_sphere(Vec3(-1,0,-1),Vec3(-0.7f,0,-1),0,1,0.5f,mat_metal2))); //left sphere
+    elements.push_back(std::make_shared<sphere>(sphere(Vec3(0,0.1f,-0.2f),0.5f,mat_lamb1))); //center sphere
     elements.push_back(std::make_shared<sphere>(sphere(Vec3(1,0,-1),0.5f,mat_diele1))); //right sphere
     elements.push_back(std::make_shared<sphere>(sphere(Vec3(0,-100.5f,-1),100,mat_lamb2)));
+
     std::shared_ptr<hitable_list> world = std::make_shared<hitable_list>(elements);
 
 
-    camera cam(Vec3(0,0,10),Vec3(0,0,-1),Vec3(0,1,0),90,float(WIDTH)/float(HEIGHT),0,1);
+    camera cam(Vec3(0,0,1),Vec3(0,0,-1),Vec3(0,1,0),90,float(WIDTH)/float(HEIGHT),0,1,0,1);
     //camera cam;
 
     std::cout << "[INFO]:\tInitialization successful, start rendering" << std::endl;

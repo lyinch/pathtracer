@@ -29,7 +29,7 @@ public:
         // diffuse: uniform scattering in all directions on the unit hemisphere
         Vec3 target = rec.p + rec.normal + random_point_on_unit_sphere();
         // cosine law
-        scattered = ray(rec.p,target-rec.p);
+        scattered = ray(rec.p,target-rec.p,r_in.time());
         attenuation = albedo;
         return true;
     }
@@ -118,9 +118,9 @@ public:
 
         // randomly chose between reflection and refraction
         if(drand48() < reflect_prob)
-            scattered = ray(rec.p,reflected);
+            scattered = ray(rec.p,reflected,r_in.time());
         else
-            scattered = ray(rec.p,refracted);
+            scattered = ray(rec.p,refracted,r_in.time());
 
         return true;
     }
@@ -138,7 +138,8 @@ public:
 
     bool scatter(const ray& r_in, const hit_record& rec, Vec3& attenuation, ray& scattered) const override {
         Vec3 reflected = reflect(r_in.getDirection(),rec.normal);
-        scattered = ray(rec.p,reflected + fuzz*random_point_on_unit_sphere());
+
+        scattered = ray(rec.p,reflected + fuzz*random_point_on_unit_sphere(),r_in.time());
         attenuation = albedo;
         return(dot(scattered.getDirection(),rec.normal) > 0);
     }

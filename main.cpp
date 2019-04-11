@@ -20,7 +20,7 @@ static const int MAX_DEPTH = 10;
 static const int WIDTH = 800;
 static const int HEIGHT = 400;
 static const Vec3 bg_color(0.5f, 0.7f, 1.f);
-static const float SHADOW_BIAS = 0.0001f;
+static const float SHADOW_BIAS = 0.0001f; //offset after a hit to prevent self intersection
 
 
 
@@ -28,8 +28,13 @@ static const float SHADOW_BIAS = 0.0001f;
  * right hand coordinate system (+z is out of monitor): camera is at (0,0,0) and looks to a screen centered at (0,0,-1)
  * Screen has edges at (w/h ratio) top left:(-2,1,-1), top right: (2,1,-1) and symmetric down.
  */
+
+/*
+ * The main part of the rendering algorithms. Takes a ray, calculates the intersection of the ray with the scene
+ * and recursively scatters the ray from the objects until a maximal depth. We have not explicit light sampling, and
+ * therefore have very slow convergence. If we don't hit anything, we return the background color.
+ */
 Vec3 color(const ray& r, const std::shared_ptr<hitable_list> &world, int depth){
-    //sphere
     hit_record rec;
     if(world->hit(r,SHADOW_BIAS,FLT_MAX,rec)) {
         ray scattered;
@@ -38,19 +43,22 @@ Vec3 color(const ray& r, const std::shared_ptr<hitable_list> &world, int depth){
         if(depth < MAX_DEPTH && rec.mat_ptr->scatter(r,rec,attenuation,scattered)){
             return attenuation*color(scattered,world,depth+1);
         }else{
-            return Vec3(0,0,0);
+            return {0,0,0};
         }
-
-        //Vec3 target = rec.p + rec.normal + random_point_on_unit_sphere();
-        //return 0.5 * color(ray(rec.p,target-rec.p),world);
     }
 
     //background
 
-    float t = normalize(r.getDirection().y,-1,1);
-    //std::cout << r.getDirection().y << std::endl;
-    return (1-t)*Vec3(1.f,1.f,1.f)+(t)*bg_color; //lerp of default color
+    float t = normalize(r.getDirection().y,-2,2);
+    if(t > 1){
+       t = 1;
+    }else if(t < 0){
+        t = 0;
+    }
+
+    return (1-t)*Vec3(1.f,1.f,1.f)+(t)*bg_color; //lerp of background color
 }
+
 
 void render(camera cam, std::ofstream &file, const std::shared_ptr<hitable_list> &world){
 
@@ -61,6 +69,8 @@ void render(camera cam, std::ofstream &file, const std::shared_ptr<hitable_list>
     for (int j = 0; j < HEIGHT; ++j) {
         for (int i = 0; i < WIDTH; ++i) {
             Vec3 col(0,0,0);
+            // We use distributed Raytracing. Send multiple samples per pixel for anti aliasing, variance and noise
+            // reduction.
             for (int k = 0; k < SAMPLES_PER_PIXEL; ++k) {
                 float u = (float) (i+drand48()) / (float) WIDTH;
                 float v = (float) (j+drand48()) / (float) HEIGHT;
@@ -97,13 +107,13 @@ int main() {
     auto mat_lamb1 = std::make_shared<lambertian>(lambertian(Vec3(0.1f,0.3f,0.3f)));
     auto mat_lamb2 = std::make_shared<lambertian>(lambertian(Vec3(0.9f,0.3f,0.3f)));
     auto mat_metal1 = std::make_shared<metal>(metal(Vec3(0.8f,0.8f,0.8f),1));
-    auto mat_metal2 = std::make_shared<metal>(metal(Vec3(0.1f,0.3f,0.5f),0.2));
+    auto mat_metal2 = std::make_shared<metal>(metal(Vec3(0.1f,0.3f,0.1f),0.1));
     auto mat_diele1 = std::make_shared<dielectric>(dielectric(1.5f));
 
     std::vector<std::shared_ptr<hitable>> elements;
-    elements.push_back(std::make_shared<sphere>(sphere(Vec3(0,0.1f,-1),0.5f,mat_lamb1)));
-    elements.push_back(std::make_shared<sphere>(sphere(Vec3(-1,0,-1),0.5f,mat_metal2)));
-    elements.push_back(std::make_shared<sphere>(sphere(Vec3(1,0,-1),0.5f,mat_diele1)));
+    elements.push_back(std::make_shared<sphere>(sphere(Vec3(-1,0,-1),0.5f,mat_metal2))); //left sphere
+    elements.push_back(std::make_shared<sphere>(sphere(Vec3(0,0.1f,-1),0.5f,mat_lamb1))); //center sphere
+    elements.push_back(std::make_shared<sphere>(sphere(Vec3(1,0,-1),0.5f,mat_diele1))); //right sphere
     elements.push_back(std::make_shared<sphere>(sphere(Vec3(0,-100.5f,-1),100,mat_lamb2)));
     std::shared_ptr<hitable_list> world = std::make_shared<hitable_list>(elements);
 

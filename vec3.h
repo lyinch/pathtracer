@@ -18,6 +18,9 @@ public:
     inline float length() const{return sqrtf(x*x+y*y+z*z);}
     inline float squared_length() const{return x*x+y*y+z*z;}
 
+    inline float operator[](int i) const { switch(i){ case 0: return x; case 1: return y; case 2: return z;} }
+    inline float& operator[](int i) { switch(i){ case 0: return x; case 1: return y; case 2: return z;} }
+
     inline Vec3& operator+= (const Vec3 &v);
     inline Vec3& operator/= (float f);
 

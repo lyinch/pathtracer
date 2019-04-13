@@ -19,6 +19,8 @@ public:
     std::vector<std::shared_ptr<hitable>> elements;
 
     bool hit(const ray &r, float t_min, float t_max, hit_record &rec) const;
+
+    bool bounding_box(float t0, float t1, aabb &box) override;
 };
 
 bool hitable_list::hit(const ray &r, float t_min, float t_max, hit_record &rec) const {
@@ -37,4 +39,24 @@ bool hitable_list::hit(const ray &r, float t_min, float t_max, hit_record &rec) 
 
     return hit_anything;
 }
+
+
+
+bool hitable_list::bounding_box(float t0, float t1, aabb &box) {
+    if(elements.size() < 1) return false;
+    aabb tmp;
+    bool first_true = elements[0]->bounding_box(t0,t1,tmp);
+    if(!first_true)
+        return false;
+    else
+        box = tmp;
+    for(auto &elem: elements){
+        if(elem->bounding_box(t0,t1,tmp)){
+            box = surrounding_box(box,tmp);
+        } else
+            return false;
+    }
+    return true;
+}
+
 #endif //PATHTRACER_HITABLE_LIST_H

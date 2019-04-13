@@ -15,6 +15,9 @@ public:
     sphere() = default;
     sphere(Vec3 cen, float r, std::shared_ptr<material> m):center(cen),radius(r), mat(std::move(m)){};
     bool hit(const ray &r, float t_min, float t_max, hit_record &rec) const override;
+
+    bool bounding_box(float t0, float t1, aabb &box) override;
+
     Vec3 center;
     float radius;
     std::shared_ptr<material> mat;
@@ -54,4 +57,17 @@ bool sphere::hit(const ray &r, float t_min, float t_max, hit_record &rec) const 
 
     return false;
 }
+
+std::ostream& operator<< (std::ostream &out, sphere const& data) {
+    out << "Sphere: (" <<  data.center.x <<  ',' << data.center.y << "," << data.center.z << "," << data.radius << ") ";
+    return out;
+}
+
+bool sphere::bounding_box(float t0, float t1, aabb &box) {
+    box = aabb(center-Vec3(radius,radius,radius),center+Vec3(radius,radius,radius));
+
+    std::cout << *this << " " <<  box << std::endl;
+    return true;
+}
+
 #endif //PATHTRACER_SPHERE_H

@@ -12,11 +12,12 @@
 #include "camera.h"
 #include "math_helper.h"
 #include "material.h"
+#include "bvh_node.h"
 
 static const std::string FILENAME = "render.ppm";
 
-static const int SAMPLES_PER_PIXEL = 200;
-static const int MAX_DEPTH = 20;
+static const int SAMPLES_PER_PIXEL = 2;
+static const int MAX_DEPTH = 2;
 
 static const int WIDTH = 800;
 static const int HEIGHT = 400;
@@ -114,7 +115,13 @@ int main() {
     elements.push_back(std::make_shared<sphere>(sphere(Vec3(1,0,-1),0.5f,mat_diele1))); //right sphere
     elements.push_back(std::make_shared<sphere>(sphere(Vec3(0,-100.5f,-1),100,mat_lamb2)));
 
-    std::shared_ptr<hitable_list> world = std::make_shared<hitable_list>(elements);
+    bvh_node n = bvh_node(elements,0,4,0,0);
+    //n.box._max = Vec3(10,10,10);
+    std::vector<std::shared_ptr<hitable>> toRender;
+    toRender.push_back(std::make_shared<bvh_node>(bvh_node(elements,0,4,0,0)));
+
+    //std::shared_ptr<hitable_list> world = std::make_shared<hitable_list>(elements);
+    std::shared_ptr<hitable_list> world = std::make_shared<hitable_list>(toRender);
 
 
     camera cam(Vec3(0,0,1),Vec3(0,0,-1),Vec3(0,1,0),90,float(WIDTH)/float(HEIGHT),0,1,0,1);

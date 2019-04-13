@@ -18,6 +18,9 @@ public:
             std::move(m)){};
     bool hit(const ray &r, float t_min, float t_max, hit_record &rec) const override;
     Vec3 center (float time) const;
+
+    bool bounding_box(float t0, float t1, aabb &box) override;
+
     Vec3 center0;
     Vec3 center1;
     float time0;
@@ -61,6 +64,22 @@ bool moving_sphere::hit(const ray &r, float t_min, float t_max, hit_record &rec)
 
 Vec3 moving_sphere::center(float time) const {
     return center0 + ((time-time0)/(time1-time0))*(center1-center0);
+}
+
+
+/**
+ * We combone the bounding boxes from the two timepoints t0 and t1
+ * @param t0
+ * @param t1
+ * @param box
+ * @return
+ */
+bool moving_sphere::bounding_box(float t0, float t1, aabb &box) {
+    aabb box0 = aabb(center(t0)-Vec3(radius,radius,radius),center(t0)+Vec3(radius,radius,radius));
+    aabb box1 = aabb(center(t1)-Vec3(radius,radius,radius),center(t1)+Vec3(radius,radius,radius));
+    //box = box1 = aabb(Vec3(10,10,10),Vec3(11,11,11));
+    box = surrounding_box(box0,box1);
+    return true;
 }
 
 #endif //PATHTRACER_MOVING_SPHERE_H

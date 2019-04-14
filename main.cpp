@@ -16,8 +16,8 @@
 
 static const std::string FILENAME = "render.ppm";
 
-static const int SAMPLES_PER_PIXEL = 2;
-static const int MAX_DEPTH = 2;
+static const int SAMPLES_PER_PIXEL = 100;
+static const int MAX_DEPTH = 10;
 
 static const int WIDTH = 800;
 static const int HEIGHT = 400;
@@ -37,12 +37,11 @@ Vec3 color(const ray& r, const std::shared_ptr<hitable_list> &world, int depth){
     if(world->hit(r,SHADOW_BIAS,FLT_MAX,rec)) {
         ray scattered;
         Vec3 attenuation;
-
+        Vec3 emitted = rec.mat_ptr->emitted(rec.p);
         if(depth < MAX_DEPTH && rec.mat_ptr->scatter(r,rec,attenuation,scattered)){
-
-            return attenuation*color(scattered,world,depth+1);
+            return emitted + attenuation*color(scattered,world,depth+1);
         }else{
-            return {0,0,0};
+            return emitted;
         }
     }
 
@@ -54,8 +53,8 @@ Vec3 color(const ray& r, const std::shared_ptr<hitable_list> &world, int depth){
     }else if(t < 0){
         t = 0;
     }
-
-    return (1-t)*Vec3(1.f,1.f,1.f)+(t)*bg_color; //lerp of background color
+    return Vec3(0,0,0); //black background because otherwise objects that do not emit (or hit an emitter) have a color
+    //return (1-t)*Vec3(1.f,1.f,1.f)+(t)*bg_color; //lerp of background color
 }
 
 
@@ -82,11 +81,19 @@ void render(camera cam, std::ofstream &file, const std::shared_ptr<hitable_list>
             col = sqrtvec(col); //Gamma correction
 
             //col is in range 0-1 but we want RGB in range 0-255
-            int ir = uint8_t(255 * col.x);
-            int ig = uint8_t(255 * col.y);
-            int ib = uint8_t(255 * col.z);
+            int ir = uint16_t(255 * col.x);
+            int ig = uint16_t(255 * col.y);
+            int ib = uint16_t(255 * col.z);
+            if(ir > 255)
+                ir = 255;
+            if(ig > 255)
+                ig = 255;
+            if(ib > 255)
+                ib = 255;
 
-
+            if(ir > 255|| ib > 255|| ig > 255){
+                std::cout << "WTF" << std::endl;
+            }
             buffer_index += 3;
             file << ir << " " << ig << " " << ib << "\n";
         }
@@ -109,16 +116,20 @@ int main() {
     auto mat_metal2 = std::make_shared<metal>(metal(Vec3(0.1f,0.3f,0.1f),0.1));
     auto mat_diele1 = std::make_shared<dielectric>(dielectric(1.5f));
 
+    auto mat_emitter = std::make_shared<diffuse_light>(diffuse_light(Vec3(4,4,4)));
+
     std::vector<std::shared_ptr<hitable>> elements;
-    elements.push_back(std::make_shared<moving_sphere>(moving_sphere(Vec3(-1,0,-1),Vec3(-0.7f,0,-1),0,1,0.5f,mat_metal2))); //left sphere
-    elements.push_back(std::make_shared<sphere>(sphere(Vec3(0,0.1f,-0.2f),0.5f,mat_lamb1))); //center sphere
+    //elements.push_back(std::make_shared<moving_sphere>(moving_sphere(Vec3(-1,0,-1),Vec3(-0.7f,0,-1),0,1,0.5f,mat_metal2))); //left sphere
+    elements.push_back(std::make_shared<sphere>(sphere(Vec3(-1,0,-1),0.5f,mat_metal2))); //left sphere
+    //elements.push_back(std::make_shared<sphere>(sphere(Vec3(0,0,-0.2f),0.5f,mat_lamb1))); //center sphere
+    elements.push_back(std::make_shared<sphere>(sphere(Vec3(0,0.1f,-1),0.5f,mat_emitter))); //center sphere
     elements.push_back(std::make_shared<sphere>(sphere(Vec3(1,0,-1),0.5f,mat_diele1))); //right sphere
     elements.push_back(std::make_shared<sphere>(sphere(Vec3(0,-100.5f,-1),100,mat_lamb2)));
 
     bvh_node n = bvh_node(elements,0,4,0,0);
     //n.box._max = Vec3(10,10,10);
     std::vector<std::shared_ptr<hitable>> toRender;
-    toRender.push_back(std::make_shared<bvh_node>(bvh_node(elements,0,4,0,0)));
+    toRender.push_back(std::make_shared<bvh_node>(n));
 
     //std::shared_ptr<hitable_list> world = std::make_shared<hitable_list>(elements);
     std::shared_ptr<hitable_list> world = std::make_shared<hitable_list>(toRender);

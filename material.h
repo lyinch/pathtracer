@@ -12,6 +12,7 @@
 class material{
 public:
     virtual bool scatter(const ray& r_in, const hit_record& rec, Vec3& attenuation, ray& scattered) const = 0;
+    virtual Vec3 emitted(const Vec3 &hit_point) const {return Vec3{0,0,0};};
 };
 
 
@@ -145,6 +146,26 @@ public:
     }
     float fuzz;
     Vec3 albedo;
+};
+
+class diffuse_light: public material{
+public:
+    diffuse_light(Vec3 a):emit(a){}
+
+    bool scatter(const ray &r_in, const hit_record &rec, Vec3 &attenuation, ray &scattered) const override {
+        Vec3 reflected = reflect(r_in.getDirection(),rec.normal);
+
+        scattered = ray(rec.p,reflected + 0.7*random_point_on_unit_sphere(),r_in.time());
+        attenuation = Vec3(0.0,0,1);
+        //sreturn(dot(scattered.getDirection(),rec.normal) > 0);
+        return true;
+    }
+
+    Vec3 emitted(const Vec3 &hit_point) const override {
+        return emit;
+    }
+
+    Vec3 emit;
 };
 
 #endif //PATHTRACER_MATERIAL_H

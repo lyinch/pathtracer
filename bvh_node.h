@@ -84,13 +84,10 @@ bvh_node::bvh_node(std::vector<std::shared_ptr<hitable>>  list, int l,int r, flo
     std::cout << "BVH NODE CONSTRUCTOR CALLED " << l << "   " << r <<  std::endl;
     int axis = int(3*drand48()); //randomly choose an axis
     if(axis == 0)
-        //qsort(l,n, sizeof(hitable *),box_x_compare);
         std::sort(list.begin()+l,list.begin()+r,box_x_compare);
     else if(axis == 1)
-        //qsort(l,n, sizeof(hitable *),box_y_compare);
         std::sort(list.begin()+l,list.begin()+r,box_y_compare);
     else
-        //qsort(l,n, sizeof(hitable *),box_z_compare);
         std::sort(list.begin()+l,list.begin()+r,box_z_compare);
 
     if(r-l == 1){

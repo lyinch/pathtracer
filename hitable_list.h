@@ -45,18 +45,31 @@ bool hitable_list::hit(const ray &r, float t_min, float t_max, hit_record &rec) 
 bool hitable_list::bounding_box(float t0, float t1, aabb &box) {
     if(elements.size() < 1) return false;
     aabb tmp;
-    bool first_true = elements[0]->bounding_box(t0,t1,tmp);
-    if(!first_true)
-        return false;
-    else
+    if (elements.size() == 1) {
+        bool first_true = elements[0]->bounding_box(t0,t1,tmp);
+        if(!first_true)
+            return false;
         box = tmp;
+        return true;
+    }
+    bool first = false;
+    bool second = false;
     for(auto &elem: elements){
         if(elem->bounding_box(t0,t1,tmp)){
-            box = surrounding_box(box,tmp);
-        } else
-            return false;
+            if(!first){
+                // This is the first box
+                box = tmp;
+            }
+            if(second){
+                // This is the second or more box
+                box = surrounding_box(box,tmp);
+            }
+            if(first)
+                second = true;
+            first = true;
+        }
     }
-    return true;
+    return first;
 }
 
 #endif //PATHTRACER_HITABLE_LIST_H

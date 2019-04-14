@@ -64,7 +64,7 @@ std::ostream& operator<< (std::ostream &out, sphere const& data) {
 }
 
 bool sphere::bounding_box(float t0, float t1, aabb &box) {
-    box = aabb(center-Vec3(radius,radius,radius),center+Vec3(radius,radius,radius));
+    box = aabb(center-3*Vec3(radius,radius,radius),center+3*Vec3(radius,radius,radius));
 
     std::cout << *this << " " <<  box << std::endl;
     return true;

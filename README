@@ -1,16 +1,1 @@
-Implementation of a CPU pathtracer. Resources used for this code:
-
-Finished implementing:
-- "Ray Tracing in One Weekend" by Peter Shirley
-
-Unfinished implementing:
-- "Physically Based Rendering: From Theory to Implementation v3" by Matt Phar, Wenzel Jakob, Greg Humphreys
-- "An introduction to Ray Tracing" by Andrew Glassner
-- "Ray Tracing the Next Week" by Peter Shirley
-- https://www.scratchapixel.com/
-
-Additional sources that may be used:
-- "Ray Tracing from the Ground Up" by Kevin Suffern
-- "Real-Time Rendering v3" by Eric Haines, Naty Hoffman, Tomas Möller
-- http://graphicscodex.com/index.php
-- http://cosinekitty.com/raytrace/contents.html
+Implementation of a CPU pathtracer.
